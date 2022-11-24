@@ -1,0 +1,28 @@
+public float player_score;
+
+if (PlayGamesPlatform.Instance.IsAuthenticated())
+{
+    Debug.Log("Score: " + Convert.ToInt32(best_time * 100));
+    PlayGamesPlatform.Instance.ReportScore(Convert.ToInt32(best_time * 100), "LEADERBOARD_ID, (bool success) =>
+    {
+        if (success)
+        {
+            Debug.Log("Score uploaded to leaderboard");
+        }
+        else
+        {
+            try
+            {
+            Debug.Log("Score not uploaded... Error");
+            }
+            catch(Exception e)
+            {
+                Debug.LogError(e.ToString());
+            }
+        }
+    });
+}
+else
+{
+    Debug.LogError("GPGS: Not Authenticated");
+}
