@@ -1,0 +1,134 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class UnityAdsManager : MonoBehaviour
+{
+    private static UnityAdsManager instance;
+
+    public static UnityAdsManager Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = FindObjectOfType<UnityAdsManager>();
+                if (instance == null)
+                {
+                    instance = new GameObject("UnityAdsManager").AddComponent<UnityAdsManager>();
+                }
+            }
+            return instance;
+        }
+    }
+
+    private void OnEnable()
+    {
+        IronSourceEvents.onSdkInitializationCompletedEvent += SdkInitializationCompletedEvent;
+        //Add AdInfo Interstitial Events
+        IronSourceInterstitialEvents.onAdReadyEvent += InterstitialOnAdReadyEvent;
+        IronSourceInterstitialEvents.onAdLoadFailedEvent += InterstitialOnAdLoadFailed;
+        IronSourceInterstitialEvents.onAdOpenedEvent += InterstitialOnAdOpenedEvent;
+        IronSourceInterstitialEvents.onAdClickedEvent += InterstitialOnAdClickedEvent;
+        IronSourceInterstitialEvents.onAdShowSucceededEvent += InterstitialOnAdShowSucceededEvent;
+        IronSourceInterstitialEvents.onAdShowFailedEvent += InterstitialOnAdShowFailedEvent;
+        IronSourceInterstitialEvents.onAdClosedEvent += InterstitialOnAdClosedEvent;
+    }
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    private void Start()
+    {
+#if UNITY_ANDROID
+        string appKey = "APP_KEY";
+#elif UNITY_IPHONE
+        string appKey = "APP_KEY";
+#else
+        string appKey = "unexpected_platform";
+#endif
+
+        Debug.Log("unity-script: IronSource.Agent.validateIntegration");
+        IronSource.Agent.validateIntegration();
+        Debug.Log("unity-script: unity version" + IronSource.unityVersion());
+
+        Debug.Log("unity-script: IronSource.Agent.init");
+        IronSource.Agent.init(appKey);
+    }
+
+    void OnApplicationPause(bool isPaused)
+    {
+        Debug.Log("unity-script: OnApplicationPause = " + isPaused);
+        IronSource.Agent.onApplicationPause(isPaused);
+    }
+
+    public void LoadInterstitialAd()
+    {
+        IronSource.Agent.loadInterstitial();
+    }
+
+    public void ShowInterstitialAd()
+    {
+        Debug.Log("unity-script: ShowInterstitialButtonClicked");
+        if (IronSource.Agent.isInterstitialReady())
+        {
+            IronSource.Agent.showInterstitial();
+        }
+        else
+        {
+            Debug.Log("unity-script: Ad not ready");
+        }
+    }
+
+    private void SdkInitializationCompletedEvent()
+    {
+        Debug.Log("UAM: Sdk Initialization Completed");
+        LoadInterstitialAd();
+    }
+
+    void InterstitialOnAdReadyEvent(IronSourceAdInfo adInfo)
+    {
+        Debug.Log("unity-script: I got InterstitialOnAdReadyEvent With AdInfo " + adInfo.ToString());
+    }
+
+    void InterstitialOnAdLoadFailed(IronSourceError ironSourceError)
+    {
+        Debug.Log("unity-script: I got InterstitialOnAdLoadFailed With Error " + ironSourceError.ToString());
+    }
+
+    void InterstitialOnAdOpenedEvent(IronSourceAdInfo adInfo)
+    {
+        Debug.Log("unity-script: I got InterstitialOnAdOpenedEvent With AdInfo " + adInfo.ToString());
+    }
+
+    void InterstitialOnAdClickedEvent(IronSourceAdInfo adInfo)
+    {
+        Debug.Log("unity-script: I got InterstitialOnAdClickedEvent With AdInfo " + adInfo.ToString());
+    }
+
+    void InterstitialOnAdShowSucceededEvent(IronSourceAdInfo adInfo)
+    {
+        Debug.Log("unity-script: I got InterstitialOnAdShowSucceededEvent With AdInfo " + adInfo.ToString());
+    }
+
+    void InterstitialOnAdShowFailedEvent(IronSourceError ironSourceError, IronSourceAdInfo adInfo)
+    {
+        Debug.Log("unity-script: I got InterstitialOnAdShowFailedEvent With Error " + ironSourceError.ToString() + " And AdInfo " + adInfo.ToString());
+    }
+
+    void InterstitialOnAdClosedEvent(IronSourceAdInfo adInfo)
+    {
+        Debug.Log("unity-script: I got InterstitialOnAdClosedEvent With AdInfo " + adInfo.ToString());
+        LoadInterstitialAd();
+    }
+}
